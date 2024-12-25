@@ -15,7 +15,7 @@ O sistema de autenticação permite que usuários façam registro, login e logout, g
 
 ## Fluxograma do Processo de Autenticação
 
-![Fluxo de Autenticação](./Public/authentication-flow.gif)
+![Fluxo de Autenticação](./ImgREADME/authentication-flow.gif)
 
 ## Endpoints
 
