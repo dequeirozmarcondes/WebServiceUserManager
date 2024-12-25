@@ -9,23 +9,26 @@ using WebServiceUserManager.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Configura o banco de dados e o contexto do Entity Framework
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-// Add Identity
+
+// Configura o Identity para o gerenciamento de usuários e roles
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-// Add services
+// Adiciona o serviço de token à injeção de dependência
 builder.Services.AddScoped<ITokenService, TokenService>();
 
-// JWT Configuration
+// Configuração do JWT
 var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new ArgumentNullException("Jwt:Key", "JWT Key configuration is missing.");
 var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? throw new ArgumentNullException("Jwt:Issuer", "JWT Issuer configuration is missing.");
 var jwtAudience = builder.Configuration["Jwt:Audience"] ?? throw new ArgumentNullException("Jwt:Audience", "JWT Audience configuration is missing.");
 
 var key = Encoding.ASCII.GetBytes(jwtKey);
+
+// Configura autenticação usando JWT Bearer
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -48,11 +51,37 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Configura autorização com uma política de role "Admin"
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAdminRole", policy => policy.RequireRole("Admin"));
+});
+
+// Adiciona suporte a controladores e Swagger para documentação da API
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "User Management API", Version = "v1" });
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "User Management API",
+        Version = "v1",
+        Description = "API for managing users and roles",
+        TermsOfService = new Uri("https://example.com/terms"),
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        {
+            Name = "Support",
+            Email = "support@example.com",
+            Url = new Uri("https://example.com/support")
+        },
+        License = new Microsoft.OpenApi.Models.OpenApiLicense
+        {
+            Name = "Use under LICX",
+            Url = new Uri("https://example.com/license")
+        }
+    });
+
+    // Configura a segurança do Swagger para usar JWT Bearer
     c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -80,6 +109,7 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
+// Configura o pipeline de requisição HTTP
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -89,5 +119,6 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 app.Run();

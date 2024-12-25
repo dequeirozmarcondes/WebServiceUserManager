@@ -16,11 +16,8 @@ namespace WebServiceUserManager.Data
         {
             base.OnModelCreating(builder);
 
-            // Customize the ASP.NET Identity model and override the defaults if needed.
-            // For example, you can rename the ASP.NET Identity table names and more.
-            // Add your customizations after calling base.OnModelCreating(builder);
-
-            // Rename Identity table names
+            // Personalização do modelo do Identity
+            // Por exemplo, renomear os nomes das tabelas do Identity
             builder.Entity<ApplicationUser>(entity => { entity.ToTable(name: "Users"); });
             builder.Entity<IdentityRole<Guid>>(entity => { entity.ToTable(name: "Roles"); });
             builder.Entity<IdentityUserRole<Guid>>(entity => { entity.ToTable("UserRoles"); });

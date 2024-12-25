@@ -2,6 +2,7 @@
 {
     public interface ITokenService
     {
-        string GenerateJwtToken(string userName, string userEmail, Guid userId);
+        // Assinatura do método para gerar token JWT
+        Task<string> GenerateJwtToken(string userName, string userEmail, Guid userId);
     }
 }

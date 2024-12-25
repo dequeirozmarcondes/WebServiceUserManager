@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using WebServiceUserManager.Dtos;
 using WebServiceUserManager.Models;
@@ -21,6 +22,7 @@ namespace WebServiceUserManager.Controllers
             _tokenService = tokenService;
         }
 
+        // Registra um novo usuário
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterUserDto model)
         {
@@ -36,30 +38,32 @@ namespace WebServiceUserManager.Controllers
             return CreatedAtAction(nameof(Register), new { id = user.Id }, new { message = "User registered successfully" });
         }
 
+        // Faz login do usuário
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginUserDto model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            // Find the user by email
+            // Encontra o usuário pelo email
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null || string.IsNullOrEmpty(user.UserName) || string.IsNullOrEmpty(user.Email))
             {
                 return Unauthorized(new { message = "Invalid login attempt." });
             }
 
-            // Check the password
+            // Verifica a senha
             var result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
 
             if (!result.Succeeded)
                 return Unauthorized();
 
-            // Generate JWT token using the token service
-            var token = _tokenService.GenerateJwtToken(user.UserName, user.Email, user.Id);
+            // Gera o token JWT usando o serviço de token
+            var token = await _tokenService.GenerateJwtToken(user.UserName, user.Email, user.Id);
             return Ok(new { token });
         }
 
+        // Obtém informações do usuário por ID
         [HttpGet("{id}")]
         public async Task<IActionResult> GetUserById(string id)
         {
@@ -75,6 +79,7 @@ namespace WebServiceUserManager.Controllers
             });
         }
 
+        // Atualiza informações do usuário
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(string id, [FromBody] UpdateUserDto model)
         {
@@ -105,7 +110,9 @@ namespace WebServiceUserManager.Controllers
             return Ok(new { message = "User updated successfully" });
         }
 
+        // Exclui um usuário (somente para administradores)
         [HttpDelete("{id}")]
+        [Authorize(Policy = "RequireAdminRole")]
         public async Task<IActionResult> DeleteUser(string id)
         {
             var user = await _userManager.FindByIdAsync(id);

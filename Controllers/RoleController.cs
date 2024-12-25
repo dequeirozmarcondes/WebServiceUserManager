@@ -18,6 +18,7 @@ namespace WebServiceUserManager.Controllers
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         }
 
+        // Cria uma nova role
         [HttpPost]
         public async Task<IActionResult> CreateRole([FromBody] RoleDto roleDto)
         {
@@ -37,6 +38,7 @@ namespace WebServiceUserManager.Controllers
             return BadRequest("Role already exists");
         }
 
+        // Adiciona uma role a um usuário
         [HttpPost("{userId}/roles")]
         public async Task<IActionResult> AddUserToRole(Guid userId, [FromBody] RoleDto roleDto)
         {
@@ -58,6 +60,7 @@ namespace WebServiceUserManager.Controllers
             return BadRequest(result.Errors);
         }
 
+        // Adiciona uma claim a um usuário
         [HttpPost("{userId}/claims")]
         public async Task<IActionResult> AddClaimToUser(Guid userId, [FromBody] ClaimDto claimDto)
         {
@@ -77,4 +80,3 @@ namespace WebServiceUserManager.Controllers
         }
     }
 }
-
